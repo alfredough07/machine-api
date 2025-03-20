@@ -10,16 +10,31 @@ const {
   deleteAllFromDatabase,
 } = require("./db");
 const checkMillionDollarIdea = require("./checkMillionDollarIdea");
+
+//Middleware
+
+//Check if the minion exists in the database and attaching it to the request object
 apiRouter.param("minionId", (req, res, next, id) => {
   const minion = getFromDatabaseById("minions", id);
   if (minion) {
     req.minion = minion;
     next();
   } else {
-    res.status(404).send({ error: "Minion not found" });
+    res.status(404).send({error: "Minion not found"});
   }
+});
+//Check if the ideaId exists in the database and attaching it to the request object
+apiRouter.param("ideaId", (req, res, next, id) => {
+  const idea = getFromDatabaseById("ideas", id);
+  if (idea) {
+    req.idea = idea;
+    next();
+  } else {
+    res.status(404).send({error: "Idea not found"});
+  }
+});
 
-})
+//Minion Routes
 apiRouter.get("/minions", (req, res, next) => {
   const minions = getAllFromDatabase("minions");
   res.send(minions);
@@ -30,35 +45,27 @@ apiRouter.post("/minions", (req, res, next) => {
   res.status(201).send(newMinion);
 });
 apiRouter.get("/minions/:minionId", (req, res, next) => {
-  const minion = getFromDatabaseById("minions", req.params.minionId);
-  if (minion) {
-    res.send(minion);
-  } else {
-    res.status(404).send({ error: "Minion not found" });
-  }
+  res.send(req.minion);
 });
 apiRouter.put("/minions/:minionId", (req, res, next) => {
-  const minionId = req.params.minionId;
-  const minionExists = getFromDatabaseById("minions", minionId);
-  if (minionExists) {
+  if (req.minion) {
     const updatedMinion = updateInstanceInDatabase("minions", req.body);
     res.send(updatedMinion);
-  } else {
-    res.status(404).send({ error: "Minion not found" });
   }
 });
 apiRouter.delete("/minions/:minionId", (req, res, next) => {
   const deletedMinion = deleteFromDatabasebyId("minions", req.params.minionId);
   if (deletedMinion) {
     res.status(204).send();
-  } else {
-    res.status(404).send({ error: "Minion not found" });
   }
 });
+
+//Idea Routes
 apiRouter.get("/ideas", (req, res, next) => {
   const ideas = getAllFromDatabase("ideas");
   res.send(ideas);
 });
+//Inclues middleware to check if the idea is a million dollar idea
 apiRouter.post("/ideas", checkMillionDollarIdea, (req, res, next) => {
   const newIdea = addToDatabase("ideas", req.body);
   if (newIdea) {
@@ -69,21 +76,14 @@ apiRouter.post("/ideas", checkMillionDollarIdea, (req, res, next) => {
 });
 
 apiRouter.get("/ideas/:ideaId", (req, res, next) => {
-  const idea = getFromDatabaseById("ideas", req.params.ideaId);
-  if (idea) {
-    res.send(idea);
-  } else {
-    res.status(404).send({ error: "Idea not found" });
+  if (req.idea) {
+    res.send(req.idea);
   }
 });
 apiRouter.put("/ideas/:ideaId", (req, res, next) => {
-  const ideaId = req.params.ideaId;
-  const ideaExists = getFromDatabaseById("ideas", ideaId);
-  if (ideaExists) {
+  if (req.idea) {
     const updatedIdea = updateInstanceInDatabase("ideas", req.body);
     res.send(updatedIdea);
-  } else {
-    res.status(404).send({ error: "Idea not found" });
   }
 });
 apiRouter.delete("/ideas/:ideaId", (req, res, next) => {
@@ -94,6 +94,8 @@ apiRouter.delete("/ideas/:ideaId", (req, res, next) => {
     res.status(404).send({ error: "Idea not found" });
   }
 });
+
+//Meeting Routes
 apiRouter.get("/meetings", (req, res, next) => {
   const meetings = getAllFromDatabase("meetings");
   res.send(meetings);
@@ -114,11 +116,6 @@ apiRouter.delete("/meetings", (req, res, next) => {
   } else {
     res.status(404).send({ error: "Meeting not found" });
   }
-
-  //Error handling middleware
-  apiRouter.use((err, req, res, next) => {
-    console.log(err.stack);
-    res.status(500).send({ error: err.message });
-  });
 });
+
 module.exports = apiRouter;

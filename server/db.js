@@ -254,6 +254,7 @@ const deleteFromDatabasebyId = (modelType, id) => {
   }
 }
 
+//Is only used for deleting meetings
 const deleteAllFromDatabase = (modelType) => {
   const model = findDataArrayByName(modelType);
   if (model === null) {

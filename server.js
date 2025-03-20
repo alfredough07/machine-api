@@ -21,6 +21,7 @@ const PORT = process.env.PORT || 4001;
 
 // Mount your existing apiRouter below at the '/api' path.
 const apiRouter = require('./server/api');
+//Use the apiRouter for all routes starting with /api
 app.use('/api', apiRouter);
 
 
